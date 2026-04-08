@@ -1,0 +1,213 @@
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+  <mat-toolbar color="primary" class="shadow-md">
+    <span class="text-xl font-bold">TaskForge</span>
+    <span class="flex-1"></span>
+    <button mat-button (click)="logout()">
+      <mat-icon>logout</mat-icon>
+      Logout
+    </button>
+  </mat-toolbar>
+
+  <div class="p-6 max-w-7xl mx-auto">
+    <!-- Hero Section with Stats -->
+    <div class="mb-8">
+      <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold mb-2">Good day! 👋</h1>
+      <p class="text-gray-600 mb-6">Here's what's on your plate today</p>
+      
+      <!-- Stats Cards -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
+        <mat-card class="p-3 md:p-4 bg-white shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-500 text-xs md:text-sm">Total Tasks</p>
+              <p class="text-2xl md:text-3xl font-bold">{{ stats.total }}</p>
+            </div>
+            <div class="text-2xl md:text-4xl">📋</div>
+          </div>
+        </mat-card>
+
+        <mat-card class="p-3 md:p-4 bg-white shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-500 text-xs md:text-sm">To Do</p>
+              <p class="text-2xl md:text-3xl font-bold text-gray-700">{{ stats.todo }}</p>
+            </div>
+            <div class="text-2xl md:text-4xl">⏳</div>
+          </div>
+        </mat-card>
+
+        <mat-card class="p-3 md:p-4 bg-white shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-500 text-xs md:text-sm">In Progress</p>
+              <p class="text-2xl md:text-3xl font-bold text-blue-600">{{ stats.inProgress }}</p>
+            </div>
+            <div class="text-2xl md:text-4xl">🛠️</div>
+          </div>
+        </mat-card>
+
+        <mat-card class="p-3 md:p-4 bg-white shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-500 text-xs md:text-sm">Completed</p>
+              <p class="text-2xl md:text-3xl font-bold text-green-600">{{ stats.done }}</p>
+            </div>
+            <div class="text-2xl md:text-4xl">✅</div>
+          </div>
+        </mat-card>
+      </div>
+    </div>
+
+    <!-- Tasks Section -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
+      <h2 class="text-xl md:text-2xl font-bold">My Tasks</h2>
+      <button mat-raised-button color="primary" (click)="toggleAddForm()" class="w-full sm:w-auto">
+        <mat-icon>add</mat-icon>
+        New Task
+      </button>
+    </div>
+    
+    <mat-card *ngIf="loading" class="p-8 text-center">
+      <p class="text-gray-500">Loading tasks...</p>
+    </mat-card>
+
+    <div *ngIf="!loading" class="grid gap-4">
+      <mat-card *ngFor="let task of tasks" class="p-4 md:p-5 hover:shadow-lg transition-shadow duration-200">
+        <!-- View Mode -->
+        <div *ngIf="editingTask?.id !== task.id">
+          <div class="flex flex-col sm:flex-row justify-between items-start gap-3">
+            <div class="flex-1 w-full">
+              <h3 class="font-bold text-lg md:text-xl mb-2">{{ task.title }}</h3>
+              <p class="text-gray-600 mb-3 text-sm md:text-base">{{ task.description }}</p>
+              <div class="flex flex-wrap gap-2 items-center">
+                <span [class]="'px-3 py-1 rounded-full text-xs font-semibold ' + getStatusColor(task.status)">
+                  {{ getStatusLabel(task.status) }}
+                </span>
+                <span [class]="'px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 ' + getPriorityColor(task.priority)">
+                  <span>{{ getPriorityIcon(task.priority) }}</span>
+                  <span class="capitalize">{{ task.priority }}</span>
+                </span>
+              </div>
+            </div>
+            <div class="flex sm:flex-col gap-2 w-full sm:w-auto">
+              <button mat-mini-fab color="primary" (click)="editTask(task)" title="Edit" class="flex-1 sm:flex-none">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-mini-fab color="warn" (click)="deleteTask(task.id)" title="Delete" class="flex-1 sm:flex-none">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Edit Mode -->
+        <div *ngIf="editingTask?.id === task.id">
+          <mat-form-field appearance="outline" class="w-full mb-3">
+            <mat-label>Title</mat-label>
+            <input matInput [(ngModel)]="editingTask.title" required>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="w-full mb-3">
+            <mat-label>Description</mat-label>
+            <textarea matInput [(ngModel)]="editingTask.description" rows="3"></textarea>
+          </mat-form-field>
+
+          <div class="flex flex-col sm:flex-row gap-4 mb-3">
+            <mat-form-field appearance="outline" class="flex-1">
+              <mat-label>Status</mat-label>
+              <mat-select [(ngModel)]="editingTask.status">
+                <mat-option value="todo">To Do</mat-option>
+                <mat-option value="in_progress">In Progress</mat-option>
+                <mat-option value="done">Done</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="flex-1">
+              <mat-label>Priority</mat-label>
+              <mat-select [(ngModel)]="editingTask.priority">
+                <mat-option value="low">Low</mat-option>
+                <mat-option value="medium">Medium</mat-option>
+                <mat-option value="high">High</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <div class="flex gap-2">
+            <button mat-raised-button color="primary" (click)="updateTask()">
+              <mat-icon>save</mat-icon>
+              Save
+            </button>
+            <button mat-button (click)="cancelEdit()">
+              <mat-icon>close</mat-icon>
+              Cancel
+            </button>
+          </div>
+        </div>
+      </mat-card>
+
+      <mat-card *ngIf="tasks.length === 0" class="p-8 md:p-12 text-center">
+        <div class="text-4xl md:text-6xl mb-4">📦</div>
+        <h3 class="text-lg md:text-xl font-semibold text-gray-700 mb-2">No tasks yet</h3>
+        <p class="text-sm md:text-base text-gray-500">Click the "New Task" button above to create your first task!</p>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Modal for Add Task -->
+  <div *ngIf="showAddForm" class="fixed inset-0 bg-black bg-opacity-50 z-[999] overflow-y-auto" (click)="toggleAddForm()">
+    <div class="min-h-screen flex items-center justify-center p-4">
+      <mat-card class="w-full max-w-2xl" (click)="$event.stopPropagation()">
+        <mat-card-content class="p-6">
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold">Create New Task</h2>
+            <button mat-icon-button (click)="toggleAddForm()">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+          
+          <div class="space-y-4">
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Title</mat-label>
+              <input matInput [(ngModel)]="newTask.title" required placeholder="Enter task title">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Description</mat-label>
+              <textarea matInput [(ngModel)]="newTask.description" rows="4" placeholder="Describe your task"></textarea>
+            </mat-form-field>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Status</mat-label>
+                <mat-select [(ngModel)]="newTask.status">
+                  <mat-option value="todo">To Do</mat-option>
+                  <mat-option value="in_progress">In Progress</mat-option>
+                  <mat-option value="done">Done</mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Priority</mat-label>
+                <mat-select [(ngModel)]="newTask.priority">
+                  <mat-option value="low">Low</mat-option>
+                  <mat-option value="medium">Medium</mat-option>
+                  <mat-option value="high">High</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+          </div>
+
+          <div class="flex gap-3 justify-end mt-6">
+            <button mat-button (click)="toggleAddForm()">
+              Cancel
+            </button>
+            <button mat-raised-button color="primary" (click)="createTask()">
+              <mat-icon>add</mat-icon>
+              Create Task
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div> 
