@@ -64,7 +64,8 @@ export class DashboardComponent implements OnInit {
     
     if (!isPlatformBrowser(this.platformId)) {
       console.log('Skipping on server');
-      return; // Skip on server
+      this.loading = false; // Set loading to false on server to prevent stuck state
+      return;
     }
 
     const token = localStorage.getItem('token');
