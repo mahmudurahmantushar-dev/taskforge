@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class ApiService {
-  private baseUrl = 'https://taskforge-1-37wz.onrender.com';
+  private baseUrl = 'https://taskforge-4sa5.onrender.com/';
 
   constructor(
     private http: HttpClient,
