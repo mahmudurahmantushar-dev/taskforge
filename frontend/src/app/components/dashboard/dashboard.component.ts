@@ -1,6 +1,7 @@
 import { Component, OnInit, PLATFORM_ID, Inject, ChangeDetectorRef } from '@angular/core';
 import { isPlatformBrowser, CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { ApiService } from '../../services/api.service';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -55,7 +56,8 @@ export class DashboardComponent implements OnInit {
   constructor(
     private apiService: ApiService,
     @Inject(PLATFORM_ID) private platformId: Object,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private router: Router
   ) {}
 
   ngOnInit() {
@@ -74,7 +76,7 @@ export class DashboardComponent implements OnInit {
     
     if (!token) {
       console.warn('No token found, redirecting to login');
-      window.location.href = '/login';
+      this.router.navigate(['/login']);
       return;
     }
     this.loadTasks();
@@ -104,7 +106,7 @@ export class DashboardComponent implements OnInit {
   logout() {
     if (isPlatformBrowser(this.platformId)) {
       localStorage.removeItem('token');
-      window.location.href = '/login';
+      this.router.navigate(['/login']);
     }
   }
 
